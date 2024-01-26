@@ -1,2 +1,12 @@
 project:
   name: airflow-snowflake-etl-task-gaming
+
+export AIRFLOW_HOME : C:\Users\Admin\Desktop\etl-snowflake\Merckle\dbt-airflow\airflow_snowflake_etl_task_gaming
+
+allowed_deserialization_classes : airflow\.* astro\.*
+
+AIRFLOW__ASTRO_SDK__STORE_DATA_LOCAL_DEV : true
+
+AIRFLOW__ASTRO_SDK__XCOM_STORAGE_CONN_ID : SNOWFLAKE_CONN_ID
+
+AIRFLOW__CORE__ALLOWED_DESERIALIZATION_CLASSES : airflow\.* astro\.*
