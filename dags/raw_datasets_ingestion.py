@@ -2,8 +2,6 @@ from datetime import datetime
 from airflow import Dataset
 from airflow.models import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
-from airflow.operators.python import PythonOperator
-from airflow.models import Variable
 from pandas import DataFrame
 import pandas as pd
 import programs
@@ -36,14 +34,16 @@ dag = DAG(
 )
 
 with dag:
-    # Create sample dataframes by using PROGRAMS class and methods created
+    # Create sample dataframes by using (importing) PROGRAMS class and methods manually created
     # Sample dataframes saved into snowflake database w_gaming_task
 
-    table_names_list = programs.helpers()["table_names_list"]
+    table_names_list_raw = programs.helpers()['table_names_list']
 
-    for key,value in table_names_list.items():
+    # Creating snowflake ingestion schema`s table
+    for key,value in table_names_list_raw.items():
             # Creating dataframes by create_dataframe function
             vars() [key] = programs.create_dataframe(value)
+            # Saving created dataframes into snowflake
             save_data = transform_dataframe(vars() [key],output_table = Table(
             name = f"{key}_raw_dataframe",
             conn_id = SNOWFLAKE_CONN_ID,))

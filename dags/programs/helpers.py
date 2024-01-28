@@ -1,7 +1,8 @@
-from faker import Faker
-from faker.providers import DynamicProvider
 
 def helpers():
+    from faker import Faker
+    from faker.providers import DynamicProvider
+
     ## Creating raw data tables dicts consisting of column names and datatypes #######
     in_app_purchase_log_server_columns = ['EVENT_TIMESTAMP','EVENT_UUID','HC_PRODUCT_VALUE','HC_PRODUCT_VALUE_BONUS',
                                         'IN_APP_PURCHASE_ID','IS_SANDBOX','PAYMENT_COUNTRY','PLATFORM','PLATFORM_PURCHASE_KEY',
@@ -135,109 +136,111 @@ def helpers():
     ship_transaction_log_dict = dict(map(lambda i,j : (i,j) , ship_transaction_log_columns,ship_transaction_log_column_types))
 
 
-    #### Creating dataframe/table names list dict to be used in loop actions to create dataframes or operations on hive.metastore write actions ####
+    #### Creating dataframe/table names list dict to be used in loop actions to create dataframes or operations on hive.metastore write actions
 
     table_names_list = {"in_app_purchase_df": in_app_purchase_log_server_dict, "login_df" : login_dict, 
-                        "multiplayer_battle_df": multiplayer_battle_started_dict, "new_user_df" : new_user_dict, 
+                        "multiplayer_battle_df": multiplayer_battle_started_dict, 
+                        "new_user_df" : new_user_dict, 
                         "session_started_df" : session_started_dict,
                         "ship_transaction_df" : ship_transaction_log_dict}
 
-    #### Creating Silver layer column name holding dicts to read only necessarry columns from bronze layer 
 
-    # silver_layer_col_names = {"in_app_purchase_df": ['EVENT_TIMESTAMP','HC_PRODUCT_VALUE','HC_PRODUCT_VALUE_BONUS','EVENT_ID',
-    #                         'IN_APP_PURCHASE_ID','IS_SANDBOX','PAYMENT_COUNTRY','PLATFORM','PLATFORM_PURCHASE_KEY',
-    #                         'PRODUCT_NAME','REAL_CURRENCY_AMOUNT','REAL_CURRENCY_TYPE','USD_COST',
-    #                         'FREE_XP_AMOUNT','SILVER_AMOUNT','GOLD_AMOUNT','IS_FREETRIAL','USER_ID','SESSION_ID','Join_Key'],
+    # Creating Silver layer column name holding dicts to read only necessarry columns from bronze layer 
 
-    #                             "login_df" : ['EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID','LOGIN_AUTHENTICATION_PLATFORM','LOGIN_SUCCESSFUL',
-    #                             'PLATFORM','SDK_VERSION','SERVER_CLUSTER','ROW_NUMBER','DEVICE_ID','LOGIN_ATTEMPT_ID','SERVER_VERSION',
-    #                             'CLIENT_VERSION','USER_ID'],
+    silver_layer_col_names = {"in_app_purchase_df": ['EVENT_TIMESTAMP','HC_PRODUCT_VALUE','HC_PRODUCT_VALUE_BONUS','EVENT_ID',
+                            'IN_APP_PURCHASE_ID','IS_SANDBOX','PAYMENT_COUNTRY','PLATFORM','PLATFORM_PURCHASE_KEY',
+                            'PRODUCT_NAME','REAL_CURRENCY_AMOUNT','REAL_CURRENCY_TYPE','USD_COST',
+                            'FREE_XP_AMOUNT','SILVER_AMOUNT','GOLD_AMOUNT','IS_FREETRIAL','USER_ID','SESSION_ID'],
+
+                                "login_df" : ['EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID','LOGIN_AUTHENTICATION_PLATFORM','LOGIN_SUCCESSFUL',
+                                'PLATFORM','SDK_VERSION','SERVER_CLUSTER','ROW_NUMBER','DEVICE_ID','LOGIN_ATTEMPT_ID','SERVER_VERSION',
+                                'CLIENT_VERSION','USER_ID','SESSION_ID'],
                                 
-    #                             "session_started_df" : ['ANDROID_REGISTRATION_ID','EVENT_ID','EVENT_TIMESTAMP',
-    #                             'EVENT_UUID','SESSION_ID',
-    #                             'USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','DEVICE_ID','SERVER_VERSION',
-    #                             'CLIENT_VERSION','Join_Key'],
+                                "session_started_df" : ['ANDROID_REGISTRATION_ID','EVENT_ID','EVENT_TIMESTAMP',
+                                'EVENT_UUID','SESSION_ID',
+                                'USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','DEVICE_ID','SERVER_VERSION',
+                                'CLIENT_VERSION'],
 
-    #                             "new_user_df" : ['BIRTH_YEAR','EMAIL','EVENT_TIMESTAMP','EVENT_UUID','EVENT_ID',
-    #                             'GENDER','USER_COUNTRY','USER_ID','USER_LEVEL','USER_NAME','USER_SCORE',
-    #                             'USER_SERVER','USER_XP','USER_REGION','USER_GEO',
-    #                             'USER_CLAN_ID','USER_TYPE','USER_CLAN_LEVEL','USER_INGAME_ID'],
+                                "new_user_df" : ['BIRTH_YEAR','EMAIL','EVENT_TIMESTAMP','EVENT_UUID','EVENT_ID',
+                                'GENDER','USER_COUNTRY','USER_ID','USER_LEVEL','USER_NAME','USER_SCORE',
+                                'USER_SERVER','USER_XP','USER_REGION','USER_GEO',
+                                'USER_CLAN_ID','USER_TYPE','USER_CLAN_LEVEL','USER_INGAME_ID','SESSION_ID'],
 
-    #                             "multiplayer_battle_df" : [
-    #                             'EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID','MAP_ID','MAP_NAME',
-    #                             'MULTIPLAYER_BATTLE_ID','MULTIPLAYER_BATTLE_MODE',
-    #                             'MULTIPLAYER_BATTLE_TEAM','MULTIPLAYER_BATTLE_TYPE','CHALLENGE_ID_3',
-    #                             'CHALLENGE_ID_1','CHALLENGE_ID_2','TEAM_ID','USER_ID','SESSION_ID','Join_Key'],
+                                "multiplayer_battle_df" : [
+                                'EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID','MAP_ID','MAP_NAME',
+                                'MULTIPLAYER_BATTLE_ID','MULTIPLAYER_BATTLE_MODE',
+                                'MULTIPLAYER_BATTLE_TEAM','MULTIPLAYER_BATTLE_TYPE','CHALLENGE_ID_3',
+                                'CHALLENGE_ID_1','CHALLENGE_ID_2','TEAM_ID','USER_ID','SESSION_ID'],
 
-    #                             "ship_transaction_df" : ['EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID',
-    #                             'SC_AMOUNT','SESSION_ID',
-    #                             'SHIP_ID','SHIP_NAME','SHIP_NATION','SHIP_PREMIUM','SHIP_TIER','SHIP_TYPE','TRANSACTION_ID',
-    #                             'USER_ID','IS_FREE_GIFT',
-    #                             'SHIP_LIMITED','Join_Key'] }
+                                "ship_transaction_df" : ['EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID',
+                                'SC_AMOUNT','SESSION_ID',
+                                'SHIP_ID','SHIP_NAME','SHIP_NATION','SHIP_PREMIUM','SHIP_TIER','SHIP_TYPE','TRANSACTION_ID',
+                                'USER_ID','IS_FREE_GIFT',
+                                'SHIP_LIMITED'] }
 
-    # silver_layer_col_names_1 = {"user_id_df" : ['USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','Join_Key'],}
+    silver_layer_col_names_1 = {"user_id_df" : ['USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','Join_key']}
 
 
-    # ## Golden Layer Table list
+    # # ## Golden Layer Table list
 
-    # golden_layer_read_table_names_list = ['in_app_purchase_df_silver_layer_managed_table', 'login_df_silver_layer_managed_table', 'multiplayer_battle_df_silver_layer_managed_table', 'new_user_df_silver_layer_managed_table', 'session_started_df_silver_layer_managed_table', 'ship_transaction_df_silver_layer_managed_table', 'user_id_df_silver_layer_managed_table']
+    golden_layer_read_table_names_list = ['in_app_purchase_df_silver_layer_managed_table', 'login_df_silver_layer_managed_table', 'multiplayer_battle_df_silver_layer_managed_table', 'new_user_df_silver_layer_managed_table', 'session_started_df_silver_layer_managed_table', 'ship_transaction_df_silver_layer_managed_table', 'user_id_df_silver_layer_managed_table']
 
-    # ## Golden Layer Column Rename Mapping Dict
-    # golden_layer_col_names = {"d_in_app_purchase": ['EVENT_TIMESTAMP','IN_APP_EVENT_TIMESTAMP','HC_PRODUCT_VALUE','IN_APP_HC_PRODUCT_VALUE','HC_PRODUCT_VALUE_BONUS','IN_APP_HC_PRODUCT_VALUE_BONUS','EVENT_ID','IN_APP_EVENT_ID',
-    #                         'IN_APP_PURCHASE_ID','IN_APP_PURCHASE_ID','IS_SANDBOX','IN_APP_IS_SANDBOX','PAYMENT_COUNTRY','IN_APP_PAYMENT_COUNTRY','PLATFORM','IN_APP_PLATFORM','PLATFORM_PURCHASE_KEY','IN_APP_PLATFORM_PURCHASE_KEY',
-    #                         'PRODUCT_NAME','IN_APP_PRODUCT_NAME','REAL_CURRENCY_AMOUNT','IN_APP_REAL_CURRENCY_AMOUNT','REAL_CURRENCY_TYPE','IN_APP_REAL_CURRENCY_TYPE','USD_COST','IN_APP_USD_COST','FREE_XP_AMOUNT',
-    #                         'IN_APP_FREE_XP_AMOUNT','SILVER_AMOUNT','IN_APP_SILVER_AMOUNT','GOLD_AMOUNT','IN_APP_GOLD_AMOUNT','IS_FREETRIAL','IN_APP_IS_FREETRIAL','USER_ID','IN_APP_USER_ID','SESSION_ID','IN_APP_SESSION_ID','Join_Key','Join_Key'], 
+    # # ## Golden Layer Column Rename Mapping Dict
+    golden_layer_col_names = {"d_in_app_purchase": ['EVENT_TIMESTAMP','IN_APP_EVENT_TIMESTAMP','HC_PRODUCT_VALUE','IN_APP_HC_PRODUCT_VALUE','HC_PRODUCT_VALUE_BONUS','IN_APP_HC_PRODUCT_VALUE_BONUS','EVENT_ID','IN_APP_EVENT_ID',
+                            'IN_APP_PURCHASE_ID','IN_APP_PURCHASE_ID','IS_SANDBOX','IN_APP_IS_SANDBOX','PAYMENT_COUNTRY','IN_APP_PAYMENT_COUNTRY','PLATFORM','IN_APP_PLATFORM','PLATFORM_PURCHASE_KEY','IN_APP_PLATFORM_PURCHASE_KEY',
+                            'PRODUCT_NAME','IN_APP_PRODUCT_NAME','REAL_CURRENCY_AMOUNT','IN_APP_REAL_CURRENCY_AMOUNT','REAL_CURRENCY_TYPE','IN_APP_REAL_CURRENCY_TYPE','USD_COST','IN_APP_USD_COST','FREE_XP_AMOUNT',
+                            'IN_APP_FREE_XP_AMOUNT','SILVER_AMOUNT','IN_APP_SILVER_AMOUNT','GOLD_AMOUNT','IN_APP_GOLD_AMOUNT','IS_FREETRIAL','IN_APP_IS_FREETRIAL','USER_ID','IN_APP_USER_ID','SESSION_ID','IN_APP_SESSION_ID','Join_Key','Join_Key'], 
 
-    #                             "d_login" : ['EVENT_ID','LOGIN_EVENT_ID','EVENT_TIMESTAMP','LOGIN_EVENT_TIMESTAMP','EVENT_UUID','LOGIN_EVENT_UUID','LOGIN_AUTHENTICATION_PLATFORM','LOGIN_AUTHENTICATION_PLATFORM','LOGIN_SUCCESSFUL','LOGIN_SUCCESSFUL',
-    #                             'PLATFORM','LOGIN_PLATFORM','SDK_VERSION','LOGIN_SDK_VERSION','SERVER_CLUSTER','LOGIN_SERVER_CLUSTER','ROW_NUMBER','LOGIN_ROW_NUMBER','DEVICE_ID','LOGIN_DEVICE_ID','LOGIN_ATTEMPT_ID','LOGIN_ATTEMPT_ID','SERVER_VERSION','LOGIN_SERVER_VERSION',
-    #                             'CLIENT_VERSION','LOGIN_CLIENT_VERSION','USER_ID','LOGIN_USER_ID','SESSION_ID','LOGIN_SESSION_ID','Join_Key','Join_Key'],
+                                "d_login" : ['EVENT_ID','LOGIN_EVENT_ID','EVENT_TIMESTAMP','LOGIN_EVENT_TIMESTAMP','EVENT_UUID','LOGIN_EVENT_UUID','LOGIN_AUTHENTICATION_PLATFORM','LOGIN_AUTHENTICATION_PLATFORM','LOGIN_SUCCESSFUL','LOGIN_SUCCESSFUL',
+                                'PLATFORM','LOGIN_PLATFORM','SDK_VERSION','LOGIN_SDK_VERSION','SERVER_CLUSTER','LOGIN_SERVER_CLUSTER','ROW_NUMBER','LOGIN_ROW_NUMBER','DEVICE_ID','LOGIN_DEVICE_ID','LOGIN_ATTEMPT_ID','LOGIN_ATTEMPT_ID','SERVER_VERSION','LOGIN_SERVER_VERSION',
+                                'CLIENT_VERSION','LOGIN_CLIENT_VERSION','USER_ID','LOGIN_USER_ID','SESSION_ID','LOGIN_SESSION_ID','Join_Key','Join_Key'],
                                 
-    #                             "d_session_started" : ['ANDROID_REGISTRATION_ID','SESSION_ANDROID_REGISTRATION_ID','EVENT_ID','SESSION_EVENT_ID','EVENT_TIMESTAMP','SESSION_EVENT_TIMESTAMP',
-    #                             'EVENT_UUID','SESSION_EVENT_UUID','SESSION_ID','SESSION_SESSION_ID',
-    #                             'USER_ID','SESSION_USER_ID','USER_GEO_LOCATION','SESSION_USER_GEO_LOCATION','USER_IS_SPENDER','SESSION_USER_IS_SPENDER','DEVICE_ID','SESSION_DEVICE_ID','SERVER_VERSION','SESSION_SERVER_VERSION',
-    #                             'CLIENT_VERSION','SESSION_CLIENT_VERSION','Join_Key','Join_Key'],
+                                "d_session_started" : ['ANDROID_REGISTRATION_ID','SESSION_ANDROID_REGISTRATION_ID','EVENT_ID','SESSION_EVENT_ID','EVENT_TIMESTAMP','SESSION_EVENT_TIMESTAMP',
+                                'EVENT_UUID','SESSION_EVENT_UUID','SESSION_ID','SESSION_SESSION_ID',
+                                'USER_ID','SESSION_USER_ID','USER_GEO_LOCATION','SESSION_USER_GEO_LOCATION','USER_IS_SPENDER','SESSION_USER_IS_SPENDER','DEVICE_ID','SESSION_DEVICE_ID','SERVER_VERSION','SESSION_SERVER_VERSION',
+                                'CLIENT_VERSION','SESSION_CLIENT_VERSION','Join_Key','Join_Key'],
 
-    #                             "d_new_user" : ['BIRTH_YEAR','USER_BIRTH_YEAR','EMAIL','USER_EMAIL','EVENT_TIMESTAMP','USER_EVENT_TIMESTAMP','EVENT_UUID','USER_EVENT_UUID','EVENT_ID','USER_EVENT_ID',
-    #                             'GENDER','USER_GENDER','USER_COUNTRY','USER_COUNTRY','USER_ID','USER_USER_ID','USER_LEVEL','USER_LEVEL','USER_NAME','USER_NAME','USER_SCORE','USER_SCORE',
-    #                             'USER_SERVER','USER_SERVER','USER_XP','USER_XP','USER_REGION','USER_REGION','USER_GEO','USER_GEO',
-    #                             'USER_CLAN_ID','USER_CLAN_ID','USER_TYPE','USER_TYPE','USER_CLAN_LEVEL','USER_CLAN_LEVEL','USER_INGAME_ID','USER_INGAME_ID','SESSION_ID','USER_SESSION_ID','Join_Key','Join_Key'],
+                                "d_new_user" : ['BIRTH_YEAR','USER_BIRTH_YEAR','EMAIL','USER_EMAIL','EVENT_TIMESTAMP','USER_EVENT_TIMESTAMP','EVENT_UUID','USER_EVENT_UUID','EVENT_ID','USER_EVENT_ID',
+                                'GENDER','USER_GENDER','USER_COUNTRY','USER_COUNTRY','USER_ID','USER_USER_ID','USER_LEVEL','USER_LEVEL','USER_NAME','USER_NAME','USER_SCORE','USER_SCORE',
+                                'USER_SERVER','USER_SERVER','USER_XP','USER_XP','USER_REGION','USER_REGION','USER_GEO','USER_GEO',
+                                'USER_CLAN_ID','USER_CLAN_ID','USER_TYPE','USER_TYPE','USER_CLAN_LEVEL','USER_CLAN_LEVEL','USER_INGAME_ID','USER_INGAME_ID','SESSION_ID','USER_SESSION_ID','Join_Key','Join_Key'],
 
-    #                             "d_multiplayer_battle" : [
-    #                             'EVENT_ID','MULTIPLAYER_EVENT_ID','EVENT_TIMESTAMP','MULTIPLAYER_EVENT_TIMESTAMP','EVENT_UUID','MULTIPLAYER_EVENT_UUID','MAP_ID','MULTIPLAYER_MAP_ID','MAP_NAME','MULTIPLAYER_MAP_NAME',
-    #                             'MULTIPLAYER_BATTLE_ID','MULTIPLAYER_BATTLE_ID','MULTIPLAYER_BATTLE_MODE','MULTIPLAYER_BATTLE_MODE',
-    #                             'MULTIPLAYER_BATTLE_TEAM','MULTIPLAYER_BATTLE_TEAM','MULTIPLAYER_BATTLE_TYPE','MULTIPLAYER_BATTLE_TYPE','CHALLENGE_ID_3','MULTIPLAYER_CHALLENGE_ID_3',
-    #                             'CHALLENGE_ID_1','MULTIPLAYER_CHALLENGE_ID_1','CHALLENGE_ID_2','MULTIPLAYER_CHALLENGE_ID_2','TEAM_ID','MULTIPLAYER_TEAM_ID','USER_ID','MULTIPLAYER_USER_ID','SESSION_ID','MULTIPLAYER_SESSION_ID','Join_Key','Join_Key'],
+                                "d_multiplayer_battle" : [
+                                'EVENT_ID','MULTIPLAYER_EVENT_ID','EVENT_TIMESTAMP','MULTIPLAYER_EVENT_TIMESTAMP','EVENT_UUID','MULTIPLAYER_EVENT_UUID','MAP_ID','MULTIPLAYER_MAP_ID','MAP_NAME','MULTIPLAYER_MAP_NAME',
+                                'MULTIPLAYER_BATTLE_ID','MULTIPLAYER_BATTLE_ID','MULTIPLAYER_BATTLE_MODE','MULTIPLAYER_BATTLE_MODE',
+                                'MULTIPLAYER_BATTLE_TEAM','MULTIPLAYER_BATTLE_TEAM','MULTIPLAYER_BATTLE_TYPE','MULTIPLAYER_BATTLE_TYPE','CHALLENGE_ID_3','MULTIPLAYER_CHALLENGE_ID_3',
+                                'CHALLENGE_ID_1','MULTIPLAYER_CHALLENGE_ID_1','CHALLENGE_ID_2','MULTIPLAYER_CHALLENGE_ID_2','TEAM_ID','MULTIPLAYER_TEAM_ID','USER_ID','MULTIPLAYER_USER_ID','SESSION_ID','MULTIPLAYER_SESSION_ID','Join_Key','Join_Key'],
 
-    #                             "d_ship_transaction" : ['EVENT_ID','SHIP_TRANS_EVENT_ID','EVENT_TIMESTAMP','SHIP_TRANS_EVENT_TIMESTAMP','EVENT_UUID','SHIP_TRANS_EVENT_UUID',
-    #                             'SC_AMOUNT','SHIP_TRANS_SC_AMOUNT','SESSION_ID','SHIP_TRANS_SESSION_ID',
-    #                             'SHIP_ID','SHIP_TRANS_SHIP_ID','SHIP_NAME','SHIP_TRANS_SHIP_NAME','SHIP_NATION','SHIP_TRANS_SHIP_NATION','SHIP_PREMIUM','SHIP_TRANS_SHIP_PREMIUM','SHIP_TIER','SHIP_TRANS_SHIP_TIER','SHIP_TYPE','SHIP_TRANS_SHIP_TYPE','TRANSACTION_ID','SHIP_TRANS_TRANSACTION_ID',
-    #                             'USER_ID','SHIP_TRANS_USER_ID','IS_FREE_GIFT','SHIP_TRANS_IS_FREE_GIFT',
-    #                             'SHIP_LIMITED','SHIP_TRANS_SHIP_LIMITED','Join_Key','Join_Key'],
-    #                             }
+                                "d_ship_transaction" : ['EVENT_ID','SHIP_TRANS_EVENT_ID','EVENT_TIMESTAMP','SHIP_TRANS_EVENT_TIMESTAMP','EVENT_UUID','SHIP_TRANS_EVENT_UUID',
+                                'SC_AMOUNT','SHIP_TRANS_SC_AMOUNT','SESSION_ID','SHIP_TRANS_SESSION_ID',
+                                'SHIP_ID','SHIP_TRANS_SHIP_ID','SHIP_NAME','SHIP_TRANS_SHIP_NAME','SHIP_NATION','SHIP_TRANS_SHIP_NATION','SHIP_PREMIUM','SHIP_TRANS_SHIP_PREMIUM','SHIP_TIER','SHIP_TRANS_SHIP_TIER','SHIP_TYPE','SHIP_TRANS_SHIP_TYPE','TRANSACTION_ID','SHIP_TRANS_TRANSACTION_ID',
+                                'USER_ID','SHIP_TRANS_USER_ID','IS_FREE_GIFT','SHIP_TRANS_IS_FREE_GIFT',
+                                'SHIP_LIMITED','SHIP_TRANS_SHIP_LIMITED','Join_Key','Join_Key'],
+                                }
 
-    # # silver_layer_col_names_1 = {"user_id_df" : ['USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','Join_Key'],}
+    silver_layer_col_names_1 = {"user_id_df" : ['USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','Join_Key'],}
 
-    # ##General KPI dataframes
+    ##General KPI dataframes
 
-    # general_kpis_dataframes = ['f_multi_ships','d_new_user','d_user_id']
+    general_kpis_dataframes = ['f_multi_ships','d_new_user','d_user_id']
 
-
-    # ##Schema Names to be set up on Hive Metastore
-    # first_layer_schema_name = "first_layer_pipeline"
-    # second_layer_schema_name = "second_layer_pipeline"
-    # third_layer_schema_name = "third_layer_pipeline"
-
-
-    # ## Metastore_name
+    ## Metastore_name
     # location_name = "hive_metastore"
-    variable_name_list = ["in_app_purchase_log_server_columns","in_app_purchase_log_server_columns_type","in_app_purchase_log_server_dict","login_columns","login_column_types","login_dict","multiplayer_battle_started_columns","multiplayer_battle_started_column_types","multiplayer_battle_started_dict","new_user_columns","new_user_column_types","new_user_dict","session_started_columns","session_started_column_types","session_started_dict","ship_transaction_log_columns","ship_transaction_log_column_types","ship_transaction_log_dict","table_names_list"]
+    variable_name_list = ["in_app_purchase_log_server_columns","in_app_purchase_log_server_columns_type","in_app_purchase_log_server_dict",
+                          "login_columns","login_column_types","login_dict","multiplayer_battle_started_columns",
+                          "multiplayer_battle_started_column_types","multiplayer_battle_started_dict","new_user_columns",
+                          "new_user_column_types","new_user_dict","session_started_columns","session_started_column_types",
+                          "session_started_dict","ship_transaction_log_columns","ship_transaction_log_column_types",
+                          "ship_transaction_log_dict","silver_layer_col_names","table_names_list","silver_layer_col_names_1"]
+    
     global variable_dict
     variable_dict = {}
 
     for i in variable_name_list:
-        variable_dict = {i : vars () [i]}
+        variable_dict[i] = vars()[i]
 
-    # return in_app_purchase_log_server_columns,in_app_purchase_log_server_columns_type,in_app_purchase_log_server_dict,login_columns,login_column_types,login_dict,multiplayer_battle_started_columns,multiplayer_battle_started_column_types,multiplayer_battle_started_dict,new_user_columns,new_user_column_types,new_user_dict,session_started_columns,session_started_column_types,session_started_dict,ship_transaction_log_columns,ship_transaction_log_column_types,ship_transaction_log_dict,table_names_list
+
+    # returns all objects defined above in accessible format in a dict
     return variable_dict
 
 if __name__ == '__main__':
