@@ -22,6 +22,7 @@ SNOWFLAKE_CONN_ID = "snowflake_default"
 # Define a function for transforming tables to dataframes
 @aql.dataframe
 def transform_dataframe(df: DataFrame):
+    df["JOIN_KEY"] = df["SESSION_ID"].astype(str) + df["USER_ID"].astype(str)
     return df
 
 

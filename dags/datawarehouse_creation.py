@@ -43,9 +43,6 @@ table_names_list_dict = {"IN_APP_PURCHASE_DF" : "IN_APP_PURCHASE_DF_RAW_DATAFRAM
 # Define a function for transforming tables to dataframes and dataframe transformations
 @aql.dataframe
 def transform_dataframe(df: DataFrame):
-    # Creating Unique Join_key column to be used in further join activities
-    # df["Join_key"] = df["SESSION_ID"].astype(str) +"-"+ df["USER_ID"]
-    df["Join_key"] = df[["SESSION_ID", "USER_ID"]].apply("".join, axis=1)
     # Deduplication on new_user and login_df table to apply 1NF normalization
     # if df.name == "new_user_df_dwh" or df.name == "login_df_dwh":
     #     df = df.drop_duplicates(subset=['USER_ID'])
@@ -53,8 +50,6 @@ def transform_dataframe(df: DataFrame):
     #     df
     # Droping duplicates on EVENT_ID column to get unique EVENT_ID column
     # df = df.drop_duplicates(subset=['event_id'])
-    # Filtering only needed columns
-    # df =  df[[f"{filter_columns}"]]
     # Index column implementation
     # df = df.assign(f"guid_{df.name}" = range(1,len(df)+1))
     return df

@@ -1,5 +1,0 @@
-{"table_names_list" : {"in_app_purchase_df": "in_app_purchase_log_server_dict", "login_df" : "login_dict", 
-                    "multiplayer_battle_df": "multiplayer_battle_started_dict", "new_user_df" : "new_user_dict", 
-                    "session_started_df" : "session_started_dict",
-                    "ship_transaction_df" : "ship_transaction_log_dict"} 
-                }

@@ -150,35 +150,35 @@ def helpers():
     silver_layer_col_names = {"in_app_purchase_df": ['EVENT_TIMESTAMP','HC_PRODUCT_VALUE','HC_PRODUCT_VALUE_BONUS','EVENT_ID',
                             'IN_APP_PURCHASE_ID','IS_SANDBOX','PAYMENT_COUNTRY','PLATFORM','PLATFORM_PURCHASE_KEY',
                             'PRODUCT_NAME','REAL_CURRENCY_AMOUNT','REAL_CURRENCY_TYPE','USD_COST',
-                            'FREE_XP_AMOUNT','SILVER_AMOUNT','GOLD_AMOUNT','IS_FREETRIAL','USER_ID','SESSION_ID'],
+                            'FREE_XP_AMOUNT','SILVER_AMOUNT','GOLD_AMOUNT','IS_FREETRIAL','USER_ID','SESSION_ID','JOIN_KEY'],
 
-                                "login_df" : ['EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID','LOGIN_AUTHENTICATION_PLATFORM','LOGIN_SUCCESSFUL',
-                                'PLATFORM','SDK_VERSION','SERVER_CLUSTER','ROW_NUMBER','DEVICE_ID','LOGIN_ATTEMPT_ID','SERVER_VERSION',
-                                'CLIENT_VERSION','USER_ID','SESSION_ID'],
-                                
-                                "session_started_df" : ['ANDROID_REGISTRATION_ID','EVENT_ID','EVENT_TIMESTAMP',
-                                'EVENT_UUID','SESSION_ID',
-                                'USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','DEVICE_ID','SERVER_VERSION',
-                                'CLIENT_VERSION'],
+                            "login_df" : ['EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID','LOGIN_AUTHENTICATION_PLATFORM','LOGIN_SUCCESSFUL',
+                            'PLATFORM','SDK_VERSION','SERVER_CLUSTER','ROW_NUMBER','DEVICE_ID','LOGIN_ATTEMPT_ID','SERVER_VERSION',
+                            'CLIENT_VERSION','USER_ID','SESSION_ID','JOIN_KEY'],
+                            
+                            "session_started_df" : ['ANDROID_REGISTRATION_ID','EVENT_ID','EVENT_TIMESTAMP',
+                            'EVENT_UUID','SESSION_ID',
+                            'USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','DEVICE_ID','SERVER_VERSION',
+                            'CLIENT_VERSION','JOIN_KEY'],
 
-                                "new_user_df" : ['BIRTH_YEAR','EMAIL','EVENT_TIMESTAMP','EVENT_UUID','EVENT_ID',
-                                'GENDER','USER_COUNTRY','USER_ID','USER_LEVEL','USER_NAME','USER_SCORE',
-                                'USER_SERVER','USER_XP','USER_REGION','USER_GEO',
-                                'USER_CLAN_ID','USER_TYPE','USER_CLAN_LEVEL','USER_INGAME_ID','SESSION_ID'],
+                            "new_user_df" : ['BIRTH_YEAR','EMAIL','EVENT_TIMESTAMP','EVENT_UUID','EVENT_ID',
+                            'GENDER','USER_COUNTRY','USER_ID','USER_LEVEL','USER_NAME','USER_SCORE',
+                            'USER_SERVER','USER_XP','USER_REGION','USER_GEO',
+                            'USER_CLAN_ID','USER_TYPE','USER_CLAN_LEVEL','USER_INGAME_ID','SESSION_ID','JOIN_KEY'],
 
-                                "multiplayer_battle_df" : [
-                                'EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID','MAP_ID','MAP_NAME',
-                                'MULTIPLAYER_BATTLE_ID','MULTIPLAYER_BATTLE_MODE',
-                                'MULTIPLAYER_BATTLE_TEAM','MULTIPLAYER_BATTLE_TYPE','CHALLENGE_ID_3',
-                                'CHALLENGE_ID_1','CHALLENGE_ID_2','TEAM_ID','USER_ID','SESSION_ID'],
+                            "multiplayer_battle_df" : [
+                            'EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID','MAP_ID','MAP_NAME',
+                            'MULTIPLAYER_BATTLE_ID','MULTIPLAYER_BATTLE_MODE',
+                            'MULTIPLAYER_BATTLE_TEAM','MULTIPLAYER_BATTLE_TYPE','CHALLENGE_ID_3',
+                            'CHALLENGE_ID_1','CHALLENGE_ID_2','TEAM_ID','USER_ID','SESSION_ID','JOIN_KEY'],
 
-                                "ship_transaction_df" : ['EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID',
-                                'SC_AMOUNT','SESSION_ID',
-                                'SHIP_ID','SHIP_NAME','SHIP_NATION','SHIP_PREMIUM','SHIP_TIER','SHIP_TYPE','TRANSACTION_ID',
-                                'USER_ID','IS_FREE_GIFT',
-                                'SHIP_LIMITED'] }
+                            "ship_transaction_df" : ['EVENT_ID','EVENT_TIMESTAMP','EVENT_UUID',
+                            'SC_AMOUNT','SESSION_ID',
+                            'SHIP_ID','SHIP_NAME','SHIP_NATION','SHIP_PREMIUM','SHIP_TIER','SHIP_TYPE','TRANSACTION_ID',
+                            'USER_ID','IS_FREE_GIFT',
+                            'SHIP_LIMITED','JOIN_KEY'] }
 
-    silver_layer_col_names_1 = {"user_id_df" : ['USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','Join_key']}
+    silver_layer_col_names_1 = {"user_id_df" : ['USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','JOIN_KEY']}
 
 
     # # ## Golden Layer Table list
