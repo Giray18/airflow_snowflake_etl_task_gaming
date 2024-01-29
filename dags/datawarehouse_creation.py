@@ -1,6 +1,9 @@
 from datetime import datetime
 from airflow import Dataset
-from airflow.models import DAG
+from airflow.operators.dummy import DummyOperator
+from airflow.models.dag import DAG
+from airflow.utils.task_group import TaskGroup
+from airflow.decorators import dag, task, task_group
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 from pandas import DataFrame
 import pandas as pd
@@ -17,58 +20,48 @@ import sqlalchemy
 # Define constants/variables for interacting with external systems
 SNOWFLAKE_CONN_ID = "snowflake_default"
 SNOWFLAKE_CONN_ID_2 = "snowflake_dwh_task"
-# IN_APP_PURCHASE_DF = "IN_APP_PURCHASE_DF_RAW_DATAFRAME"
-# LOGIN_DF = "LOGIN_DF_RAW_DATAFRAME"
-# MULTIPLAYER_BATTLE_DF = "MULTIPLAYER_BATTLE_DF_RAW_DATAFRAME"
-# NEW_USER_DF = "NEW_USER_DF_RAW_DATAFRAME"
-# SESSION_STARTED_DF = "SESSION_STARTED_DF_RAW_DATAFRAME"
-# SHIP_TRANSACTION_DF = "SHIP_TRANSACTION_DF_RAW_DATAFRAME"
 table_names_list_dict = {"IN_APP_PURCHASE_DF" : "IN_APP_PURCHASE_DF_RAW_DATAFRAME", "LOGIN_DF" : "LOGIN_DF_RAW_DATAFRAME",
                          "MULTIPLAYER_BATTLE_DF" : "MULTIPLAYER_BATTLE_DF_RAW_DATAFRAME",
                         "NEW_USER_DF" : "NEW_USER_DF_RAW_DATAFRAME" ,"SESSION_STARTED_DF" :"SESSION_STARTED_DF_RAW_DATAFRAME",
                         "SHIP_TRANSACTION_DF" : "SHIP_TRANSACTION_DF_RAW_DATAFRAME"}
 
-# Define a query for aggregating data 
-# @aql.transform()
-# def last_five_animations(input_table: Table):  # skipcq: PYL-W0613
-#     return """
-#         SELECT *
-#         FROM {{input_table}}
-#         WHERE genre1=='Animation'
-#         ORDER BY rating asc
-#         LIMIT 5;
-#     """
+
+@aql.run_raw_sql
+def create_table(table: Table):
+    """Create user_id table on Snowflake"""
+    return """
+      CREATE OR REPLACE TABLE {{table}} as SELECT 
+      user_id, user_geo_location, user_is_spender, join_key FROM 
+      session_started_df_dwh;
+    """
+
+@aql.run_raw_sql
+def anti_join_table(table_1: Table, table_2: Table):
+    """Anti join operation get only not new users to user_id table"""
+    return """
+      CREATE OR REPLACE TABLE {{table_1}} as SELECT 
+      * FROM {{table_1}} u
+      WHERE NOT EXISTS (
+      SELECT user_id FROM 
+      {{table_2}} n WHERE u.user_id = n.user_id) ;
+    """
 
 
-# Define a function for transforming tables to dataframes and dataframe transformations
+@aql.dataframe
+def save_dataframe_to_snowflake(df: DataFrame):
+    return df
+
+
 @aql.dataframe
 def transform_dataframe(df: DataFrame):
-    # Deduplication on new_user and login_df table to apply 1NF normalization
-    # if df.name == "new_user_df_dwh" or df.name == "login_df_dwh":
-    #     df = df.drop_duplicates(subset=['USER_ID'])
-    # else:
-    #     df
-    # Droping duplicates on EVENT_ID column to get unique EVENT_ID column
-    # df = df.drop_duplicates(subset=['event_id'])
-    # Index column implementation
-    # df = df.assign(f"guid_{df.name}" = range(1,len(df)+1))
+    # Deduplication on user_id table df by user_id number
+    df = df.drop_duplicates(subset=['user_id'])
     return df
 
 @aql.transform
 #Reading only needed columns from raw data tables
-def filter_events(input_table: Table,my_string):
+def filter_source_table(input_table: Table,my_string):
     return "SELECT "+ f"{my_string}"+ " FROM {{input_table}}"
-
-# @aql.transform()
-# def read_transform_table(table_1: Table, table_2: Table):
-#     """Read table data which will be the target of the merge method"""
-#     return """
-#       SELECT YEAR(f.EVENT_TIME) as YEAR, COUNT(f.EVENT_TIME) as ITEM_VIEW
-#       FROM {{table_1}} as f
-#       INNER JOIN {{table_2}} as d ON f.EVENT_PARAMETER_VALUE = d.ITEM_ID
-#       GROUP BY YEAR
-#       ORDER BY YEAR DESC
-#     """
 
 
 # Basic DAG definition
@@ -80,72 +73,26 @@ dag = DAG(
 )
 
 with dag:
-    # Load a file with a header from S3 bucket into Snowflake, referenced by the
-    # variable `event_data`. This simulated the `extract` step of the ETL pipeline.
-    # event_data = aql.load_file(task_id="load_events",input_file=File(S3_FILE_PATH),)
 
-    # Create a Table object for customer data in the Snowflake database
+    # Create a Table objects for table operations on snowflake
+    with TaskGroup('bulk_operations') as tg1:
+        for key,value in table_names_list_dict.items():
+            vars() [key] = Table(
+            name = value,
+            conn_id=SNOWFLAKE_CONN_ID,)
+            my_string = ",".join(str(element) for element in programs.helpers()["silver_layer_col_names"][key.lower()])
+            filtered_dataframes = filter_source_table(vars() [key],my_string)
+            save_dataframe_dwh = save_dataframe_to_snowflake((filtered_dataframes),output_table = Table(
+            name = f"{key}_dwh",
+            conn_id = SNOWFLAKE_CONN_ID_2,))
 
-    for key,value in table_names_list_dict.items():
-        # f"{table_name}_table"
-        vars() [key] = Table(
-        name = value,
-        conn_id=SNOWFLAKE_CONN_ID,)
-        # my_string = ",".join(str(element) for element in programs.helpers()["silver_layer_col_names"][key.lower()])
-        # table_save_dwh = transform_dataframe(filter_events(vars() [key]),my_string
-        #                                      ,output_table = Table(
-        # name = f"{key}_dwh",
-        # conn_id = SNOWFLAKE_CONN_ID_2,))
-        my_string = ",".join(str(element) for element in programs.helpers()["silver_layer_col_names"][key.lower()])
-        table_save_dwh = transform_dataframe((filter_events(vars() [key],
-        my_string)),output_table = Table(
-        name = f"{key}_dwh",
-        conn_id = SNOWFLAKE_CONN_ID_2,
-    ))
+    # Saving tables from snowflake to variables to use on tasks
+    user_id_df_dwh = Table(name="user_id_df_dwh", temp=True, conn_id=SNOWFLAKE_CONN_ID_2)
+    new_user_df_dwh = Table(name="new_user_df_dwh", temp=True, conn_id=SNOWFLAKE_CONN_ID_2)
 
-    # login_table = Table(
-    #     name = SNOWFLAKE_LOGIN_RAW,
-    #     conn_id=SNOWFLAKE_CONN_ID,
-    # )
-
-    # table_read = filter_events(f_events_table)
-
-    # year_view_count = read_transform_table(filter_events(f_events_table),d_item_table)
-
-    # year_view_count_dataframe = transform_dataframe((year_view_count),output_table = Table(
-    #     name = "yearly_item_view_count",
-    #     conn_id = SNOWFLAKE_CONN_ID,
-    # ))
-                                           
-                                           
-    #                                        ,output_table = Table(
-    #     name = "yearly_item_view_count",
-    #     conn_id = SNOWFLAKE_CONN_ID,
-    # ))
-
-    # # Create the user table data which will be the target of the merge method
-    # def example_snowflake_partial_table_with_append():
-    #     d_event = Table(name="d_event", temp=True, conn_id=SNOWFLAKE_CONN_ID)
-    #     create_user_table = create_table(table=d_event, conn_id=SNOWFLAKE_CONN_ID)
-
-    # example_snowflake_partial_table_with_append()
+    tg1 >> create_table(table=user_id_df_dwh, conn_id=SNOWFLAKE_CONN_ID_2) >> anti_join_table(table_1 = user_id_df_dwh, table_2 = new_user_df_dwh) >> transform_dataframe(user_id_df_dwh)
 
 
-# d_event table created and merged into snowflake table as delta loads arrive
-#     events_data = transform_dataframe((event_data),output_table = Table(
-#         name = "d_event_raw",
-#         conn_id = SNOWFLAKE_CONN_ID,
-#     ))
-
-# # Merge statement for incremental refresh (update based on key column)
-#     event_data_merge = aql.merge(target_table=Table(
-#     name = "d_event",
-#     conn_id=SNOWFLAKE_CONN_ID,),
-#     source_table = events_data,
-#         target_conflict_columns=["event_id"],
-#         columns=["event_id","guid_event"],
-#         if_conflicts="ignore",
-#     )
 
 # Delete temporary and unnamed tables created by `load_file` and `transform`, in this example
     aql.cleanup()

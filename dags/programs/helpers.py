@@ -218,7 +218,7 @@ def helpers():
                                 'SHIP_LIMITED','SHIP_TRANS_SHIP_LIMITED','Join_Key','Join_Key'],
                                 }
 
-    silver_layer_col_names_1 = {"user_id_df" : ['USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','Join_Key'],}
+    silver_layer_col_names_1 = {"user_id_df" : ['USER_ID','USER_GEO_LOCATION','USER_IS_SPENDER','Join_Key']}
 
     ##General KPI dataframes
 
