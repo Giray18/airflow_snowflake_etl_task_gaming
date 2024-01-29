@@ -54,6 +54,8 @@ def save_dataframe_to_snowflake(df: DataFrame):
 
 @aql.dataframe
 def transform_dataframe(df: DataFrame):
+    # Dropping USER_GEO_LOCATION column
+    df = df.drop(columns=['user_geo_location'])
     # Deduplication on user_id table df by user_id number
     df = df.drop_duplicates(subset=['user_id'])
     return df
@@ -74,22 +76,28 @@ dag = DAG(
 
 with dag:
 
+
+
     # Create a Table objects for table operations on snowflake
     with TaskGroup('bulk_operations') as tg1:
         for key,value in table_names_list_dict.items():
+            # Getting tables from raw_data layer into variables to used in further operations
             vars() [key] = Table(
             name = value,
             conn_id=SNOWFLAKE_CONN_ID,)
+            # String to get columns names from list to string to pass in select statement
             my_string = ",".join(str(element) for element in programs.helpers()["silver_layer_col_names"][key.lower()])
             filtered_dataframes = filter_source_table(vars() [key],my_string)
+            # Saving tables into dwh_layer on related snowflake schema
             save_dataframe_dwh = save_dataframe_to_snowflake((filtered_dataframes),output_table = Table(
             name = f"{key}_dwh",
             conn_id = SNOWFLAKE_CONN_ID_2,))
 
-    # Saving tables from snowflake to variables to use on tasks
+    # Saving tables from snowflake to variables to use on tasks for tables that has further transformations
     user_id_df_dwh = Table(name="user_id_df_dwh", temp=True, conn_id=SNOWFLAKE_CONN_ID_2)
     new_user_df_dwh = Table(name="new_user_df_dwh", temp=True, conn_id=SNOWFLAKE_CONN_ID_2)
 
+    # Task dependencies
     tg1 >> create_table(table=user_id_df_dwh, conn_id=SNOWFLAKE_CONN_ID_2) >> anti_join_table(table_1 = user_id_df_dwh, table_2 = new_user_df_dwh) >> transform_dataframe(user_id_df_dwh)
 
 

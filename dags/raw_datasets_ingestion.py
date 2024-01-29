@@ -52,9 +52,9 @@ with dag:
 
         # Creating snowflake ingestion schema`s table
         for key,value in table_names_list_raw.items():
-                # Creating dataframes by create_dataframe function
+                # Creating dataframes by create_dataframe function and saving into a variable
                 vars() [key] = programs.create_dataframe(value)
-                # Saving created dataframes into snowflake
+                # Saving created dataframes into snowflake`s raw_layer (ingestion layer)`
                 save_data = transform_dataframe(vars() [key],output_table = Table(
                 name = f"{key}_raw_dataframe",
                 conn_id = SNOWFLAKE_CONN_ID,))
@@ -63,8 +63,11 @@ with dag:
     task_id="trigger_dependent_dag",
     trigger_dag_id="read_raw_data_tables",
     wait_for_completion=True,
-    deferrable=True,  # Note that this parameter only exists in Airflow 2.6+
+    deferrable=True,  
     )
+
+    # Task dependencies
+    tg1 >> trigger_dependent_dag
 
 # Delete temporary and unnamed tables created by `load_file` and `transform`, in this example
     aql.cleanup()
