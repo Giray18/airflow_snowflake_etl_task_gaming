@@ -26,15 +26,6 @@ table_names_list_dict = {"d_in_app_purchase" : "IN_APP_PURCHASE_DF_DWH", "d_logi
                         "d_ship_transaction" : "SHIP_TRANSACTION_DF_DWH", "d_user_id" : "USER_ID_DF_DWH"}
 
 
-# @aql.run_raw_sql
-# def create_table(table: Table):
-#     """Create user_id table on Snowflake"""
-#     return """
-#       CREATE OR REPLACE TABLE {{table}} as SELECT 
-#       user_id, user_geo_location, user_is_spender, join_key FROM 
-#       session_started_df_dwh;
-#     """
-
 @aql.run_raw_sql
 def left_join_table(table_1: Table, table_2: Table, table_3: Table, table_4: Table, table_5: Table):
     """left join operation get f_multi_ships fact table (left join of 3 tables to session started table)
@@ -42,24 +33,22 @@ def left_join_table(table_1: Table, table_2: Table, table_3: Table, table_4: Tab
     user`s unique sessions"""
     return """
       CREATE OR REPLACE TABLE {{table_1}} as SELECT 
-      * FROM {{table_2}} m
-      LEFT JOIN {{table_3}} n  ON m.join_key = n.join_key
-      LEFT JOIN {{table_4}} b   ON m.join_key = b.join_key
-      LEFT JOIN {{table_5}} d  ON m.join_key = d.join_key;
+      * FROM {{table_2}} as m
+      LEFT JOIN {{table_3}} as n  ON m.session_android_join_key = n.multiplayer_join_key
+      LEFT JOIN {{table_4}} as b   ON m.session_android_join_key = b.in_app_join_key
+      LEFT JOIN {{table_5}} as d  ON m.session_android_join_key = d.ship_trans_join_key;
     """
 
 
 @aql.dataframe
-def save_dataframe_to_snowflake(df: DataFrame):
-    # df.rename(columns={"A": "a", "B": "c"})
+def save_dataframe_to_snowflake(df: DataFrame,columns_to_rename):
+# Renaming table columns as aligned with table name
+    counter_rename = 0
+    while counter_rename < len(columns_to_rename)-1:
+        df.rename({columns_to_rename[counter_rename].lower() : columns_to_rename[counter_rename+1].lower()},inplace=True,axis='columns')
+        counter_rename += 2
     return df
 
-
-# @aql.dataframe
-# def transform_dataframe(df: DataFrame):
-#     # Deduplication on user_id table df by user_id number
-#     df = df.drop_duplicates(subset=['user_id'])
-#     return df
 
 @aql.transform
 #Reading only needed columns from raw data tables
@@ -90,7 +79,8 @@ with dag:
             my_string = ",".join(str(element) for element in programs.helpers()["golden_layer_col_names"][key.lower()])
             filtered_dataframes = filter_source_table(vars() [key],my_string.lower())
             # Saving tables into bi_layer on related snowflake schema
-            save_dataframe_bi = save_dataframe_to_snowflake((filtered_dataframes),output_table = Table(
+            columns_to_rename = programs.helpers()["golden_layer_col_map"][key.lower()]
+            save_dataframe_bi = save_dataframe_to_snowflake(filtered_dataframes,columns_to_rename,output_table = Table(
             name = f"{key}_bi",
             conn_id = SNOWFLAKE_CONN_ID_3,))
 
@@ -104,8 +94,6 @@ with dag:
     # Task dependencies
     tg1 >> left_join_table(table_1 = f_multi_ships_bi, table_2 = d_session_started_bi , table_3 = d_multiplayer_battle_bi 
                            , table_4 = d_in_app_purchase_bi, table_5 = d_ship_transaction_bi) 
-    # >> anti_join_table(table_1 = user_id_df_dwh, table_2 = new_user_df_dwh) >> transform_dataframe(user_id_df_dwh)
-
 
 
 # Delete temporary and unnamed tables created by `load_file` and `transform`, in this example
