@@ -1,49 +1,72 @@
-Overview
-========
+# data_engineering
+This Repo contains activities related to ELT, data warehouse creation and advanced analytics by Spark framework (PySpark on Databricks)
 
-Welcome to Astronomer! This project was generated after you ran 'astro dev init' using the Astronomer CLI. This readme describes the contents of the project, as well as how to run Apache Airflow on your local machine.
+# Task:
+There are table definitions which has structure of source tables without any data sample only DDL sql script is available and can be found at files with name 'test_tables 1.sql'.
+Tables belongs to gaming domain on app user and game activities
 
-Project Contents
-================
+* IN_APP_PURCHASE_LOG_SERVER (Covers user item purchasing data)
+* MULTIPLAYER_BATTLE_STARTED (Covers multiplayer battle related data)
+* LOGIN (Covers user login data to app)
+* NEW_USER (Covers new users user data)
+* SESSION_STARTED (Covers session data when user created session)
+* SHIP_TRANSACTION_LOG (Covers in game ship buy-purchase-trade data from users items)
 
-Your Astro project contains the following files and folders:
+# Current Stage:
+Based on DDL sql script shared, with using python faker package some fake data holding source tables created with notebook called "Bronze_Layer_Notebook".
+Further steps applied on mentioned source tables for further steps.
 
-- dags: This folder contains the Python files for your Airflow DAGs. By default, this directory includes two example DAGs:
-    - `example_dag_basic`: This DAG shows a simple ETL data pipeline example with three TaskFlow API tasks that run daily.
-    - `example_dag_advanced`: This advanced DAG showcases a variety of Airflow features like branching, Jinja templates, task groups and several Airflow operators.
-- Dockerfile: This file contains a versioned Astro Runtime Docker image that provides a differentiated Airflow experience. If you want to execute other commands or overrides at runtime, specify them here.
-- include: This folder contains any additional files that you want to include as part of your project. It is empty by default.
-- packages.txt: Install OS-level packages needed for your project by adding them to this file. It is empty by default.
-- requirements.txt: Install Python packages needed for your project by adding them to this file. It is empty by default.
-- plugins: Add custom or community plugins for your project to this file. It is empty by default.
-- airflow_settings.yaml: Use this local-only file to specify Airflow Connections, Variables, and Pools instead of entering them in the Airflow UI as you develop DAGs in this project.
+# Target Stage:
+Intention is to create 3 tier architecture on delta lakehouse architecture. All tables created on transformations will be saved to DBFS (Databricks File System) as managed table)
+* Bronze layer will hold ingested tables as raw data format
+* Silver layer will hold cleaned and relatively normalized tables as close as It can get to 3NF
+* Gold layer will hold analytics datawarehouse formatted tables and aggregated views as business requirements mentioned below.
+  * All metrics are requested to be calculated by time periods required as Daily,Monthly and Weekly (Prefilters final fact table before metrics calculated)
+For to reach target stage from current stage 3 notebooks created as named
+* Bronze_Layer_Notebook (Ingestion to Bronze Layer Schema)
+* Silver_Layer_Notebook (Created Normalized Tables -  Deduplicated tables by unique value holding fields)
+  * IN_APP_PURCHASE Table
+  * LOGIN Table
+  * Multiplayer_Battle Table
+  * New_user Table
+  * Session_started Table
+  * Ship_transaction Table
+* Golden_Layer_Notebook (Created Data Model for BI tool (Star Schema)) and (Table/Views holding Metrics/KPIs defined below)
 
-Deploy Your Project Locally
-===========================
+# Flow Diagrams (Shows steps applied on notebooks)
 
-1. Start Airflow on your local machine by running 'astro dev start'.
+![picture alt](Data_Model-Page-2.drawio.png)
 
-This command will spin up 4 Docker containers on your machine, each for a different Airflow component:
+# Golden Layer Datamodel (Some columns hidden due to downsize schema view)
+![picture alt](Data_Model_Short.png)
 
-- Postgres: Airflow's Metadata Database
-- Webserver: The Airflow component responsible for rendering the Airflow UI
-- Scheduler: The Airflow component responsible for monitoring and triggering tasks
-- Triggerer: The Airflow component responsible for triggering deferred tasks
+## General Metrics
+* Active Users: Unique User count exists on f_multi_ships table based on field named "Session_User_Id"
+* New Users: Unique User count exists on d_new_user dimension table based on field named "User_User_ID"
+* Revenue Sum: Total revenue sum from IN APP user purchasements calculated based on f_multi_ships table`s field "IN_APP_USD_COST" sum(IN_APP_USD_COST)
+* Spender Users: Count of User_Is_Spender field from d_user_id dim table
+* ARPU: Revenue per active user, calculated by division of Total Revenue to Active User Number
+* ARRPU: Revenue per spender users, calculated by division of Total Revenue to Spender User Number
+* 1 Day Retention Rate: Division of game played new user number to all new user number for last 1 day
+* 3 Day Retention Rate: Division of game played new user number to all new user number for last 3 day
+* 7 Day Retention Rate: Division of game played new user number to all new user number for last 7 day
+* 7 Day Conversion Rate: Division of item purchased new user number to all new user number for last 7 day
 
-2. Verify that all 4 Docker containers were created by running 'docker ps'.
+## In game ship related metrics
+* Ships owned by everyuser everyday: Ships count that get into transactions this view will show that count as grouped by user_id, daily timestamp and ship name
+* Daily ships popularity: Ships rank by purchase count daily / Ships rank by sold count daily
 
-Note: Running 'astro dev start' will start your project with the Airflow Webserver exposed at port 8080 and Postgres exposed at port 5432. If you already have either of those ports allocated, you can either [stop your existing Docker containers or change the port](https://docs.astronomer.io/astro/test-and-troubleshoot-locally#ports-are-not-available).
+## User transactions overview
+* Amount of multiplayer battles before first purchase date of users: User battle participation count before their first purchase date
+* Amount of logins before first purchase date of users: User login count before their first purchase date
+* Amount of days before first purchase date of users: User day count before their first purchase date (Between their registration date and first purchase date)
+* Daily revenue per user: IN_APP item cost sum per User -- IN_APP_USD_COST field sum grouped by USER_ID for last 1 day
+* Weekly revenue per user: IN_APP item cost sum per User -- IN_APP_USD_COST field sum grouped by USER_ID for last 7 day
+* Monthly revenue per user: IN_APP item cost sum per User -- IN_APP_USD_COST field sum grouped by USER_ID for last 30 day
 
-3. Access the Airflow UI for your local Airflow project. To do so, go to http://localhost:8080/ and log in with 'admin' for both your Username and Password.
+## Battle analysis
+* New users participation in battles since 1/3/7/14 days since registration: User table with battle participation count as daily
+* Active users battle participations of all times: User table with battle participation count as daily
 
-You should also be able to access your Postgres Database at 'localhost:5432/postgres'.
-
-Deploy Your Project to Astronomer
-=================================
-
-If you have an Astronomer account, pushing code to a Deployment on Astronomer is simple. For deploying instructions, refer to Astronomer documentation: https://docs.astronomer.io/cloud/deploy-code/
-
-Contact
-=======
-
-The Astronomer CLI is maintained with love by the Astronomer team. To report a bug or suggest a change, reach out to our support.
+# Activation of Notebooks
+In case there is a databricks subscription only by activation of starter notebook is enough to all notebooks and codes to be run and populate designed schemas/tables.
