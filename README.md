@@ -37,7 +37,7 @@ For to reach target stage from current stage 4 Airflow dags created as named
 
 # Flow Diagrams (Shows steps applied on DAGS)
 
-![picture alt](Data_Model-Page-7.drawio.png)
+![picture alt](Snowflake-Page-7.drawio.png)
 
 # Golden Layer Datamodel (Some columns hidden due to downsize schema view)
 ![picture alt](Data_Model_Short.png)
