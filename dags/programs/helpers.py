@@ -261,14 +261,13 @@ def helpers():
 
     general_kpis_dataframes = ['f_multi_ships','d_new_user','d_user_id']
 
-    ## Metastore_name
-    # location_name = "hive_metastore"
+    ## A list to define needed objects to be append in return dict below
     variable_name_list = ["in_app_purchase_log_server_columns","in_app_purchase_log_server_columns_type","in_app_purchase_log_server_dict",
                           "login_columns","login_column_types","login_dict","multiplayer_battle_started_columns",
                           "multiplayer_battle_started_column_types","multiplayer_battle_started_dict","new_user_columns",
                           "new_user_column_types","new_user_dict","session_started_columns","session_started_column_types",
                           "session_started_dict","ship_transaction_log_columns","ship_transaction_log_column_types",
-                          "ship_transaction_log_dict","silver_layer_col_names","table_names_list","silver_layer_col_names_1","golden_layer_col_names","golden_layer_col_map"]
+                          "ship_transaction_log_dict","silver_layer_col_names","table_names_list","silver_layer_col_names_1","golden_layer_col_names","golden_layer_col_map","general_kpis_dataframes"]
     
     global variable_dict
     variable_dict = {}

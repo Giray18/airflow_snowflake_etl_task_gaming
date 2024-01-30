@@ -66,8 +66,6 @@ dag = DAG(
 
 with dag:
 
-
-
     # Create a Table objects for table operations on snowflake
     with TaskGroup('bulk_operations') as tg1:
         for key,value in table_names_list_dict.items():
