@@ -19,11 +19,7 @@ import sqlalchemy
 
 # Define constants/variables for interacting with external systems
 SNOWFLAKE_CONN_ID_3 = "snowflake_bi_task"
-# SNOWFLAKE_CONN_ID_4 = "snowflake_kpi_task"
-table_names_list_dict = {"f_multi_ships" : "F_MULTI_SHIPS_BI", "d_new_user" : "d_new_user_bi",
-                         "d_user_id" : "d_user_id_bi"}
-                        # "d_new_user" : "NEW_USER_DF_DWH" ,"d_session_started" :"SESSION_STARTED_DF_DWH",
-                        # "d_ship_transaction" : "SHIP_TRANSACTION_DF_DWH", "d_user_id" : "USER_ID_DF_DWH"}
+
 
 # Active users count
 @aql.run_raw_sql
@@ -305,6 +301,7 @@ def seven_day_conversion_rate(table_1: Table, table_2: Table):
     """
 
 # Ships owned by a every user every day (At this stage SC_AMOUNT > 0 Used since I do not have 0 value for that column in my sample dataset)
+#  SC_AMOUNT < 0 == ship purchased by user
 @aql.run_raw_sql
 def user_ship_table(table_1: Table):
     """A table showing daily based ship-user_id intersections"""
@@ -316,7 +313,7 @@ def user_ship_table(table_1: Table):
       GROUP BY session_user_id,session_event_timestamp,ship_trans_ship_name
       ;
     """
-#  SC_AMOUNT < 0 == ship purchased by user
+
 
 # Daily ships popularity
 @aql.run_raw_sql

@@ -5,6 +5,7 @@ from airflow.models.dag import DAG
 from airflow.utils.task_group import TaskGroup
 from airflow.decorators import dag, task, task_group
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from pandas import DataFrame
 import pandas as pd
 import programs
@@ -76,8 +77,6 @@ dag = DAG(
 
 with dag:
 
-
-
     # Create a Table objects for table operations on snowflake
     with TaskGroup('bulk_operations') as tg1:
         for key,value in table_names_list_dict.items():
@@ -97,8 +96,15 @@ with dag:
     user_id_df_dwh = Table(name="user_id_df_dwh", temp=True, conn_id=SNOWFLAKE_CONN_ID_2)
     new_user_df_dwh = Table(name="new_user_df_dwh", temp=True, conn_id=SNOWFLAKE_CONN_ID_2)
 
+    trigger_dependent_dag = TriggerDagRunOperator(
+    task_id="trigger_dependent_dag",
+    trigger_dag_id="read_dwh_layer_data_tables",
+    wait_for_completion=True,
+    deferrable=False,  
+    )
+
     # Task dependencies
-    tg1 >> create_table(table=user_id_df_dwh, conn_id=SNOWFLAKE_CONN_ID_2) >> anti_join_table(table_1 = user_id_df_dwh, table_2 = new_user_df_dwh) >> transform_dataframe(user_id_df_dwh)
+    tg1 >> create_table(table=user_id_df_dwh, conn_id=SNOWFLAKE_CONN_ID_2) >> anti_join_table(table_1 = user_id_df_dwh, table_2 = new_user_df_dwh) >> transform_dataframe(user_id_df_dwh) >> trigger_dependent_dag 
 
 
 

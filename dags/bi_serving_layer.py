@@ -5,6 +5,7 @@ from airflow.models.dag import DAG
 from airflow.utils.task_group import TaskGroup
 from airflow.decorators import dag, task, task_group
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from pandas import DataFrame
 import pandas as pd
 import programs
@@ -89,9 +90,17 @@ with dag:
     d_in_app_purchase_bi = Table(name="d_in_app_purchase_bi", temp=True, conn_id=SNOWFLAKE_CONN_ID_3)
     d_ship_transaction_bi = Table(name="d_ship_transaction_bi", temp=True, conn_id=SNOWFLAKE_CONN_ID_3)
 
+
+    trigger_dependent_dag = TriggerDagRunOperator(
+    task_id="trigger_dependent_dag",
+    trigger_dag_id="kpi_calculations",
+    wait_for_completion=True,
+    deferrable=False,  
+    )
+
     # Task dependencies
-    tg1 >> left_join_table(table_1 = f_multi_ships_bi, table_2 = d_session_started_bi , table_3 = d_multiplayer_battle_bi 
-                           , table_4 = d_in_app_purchase_bi, table_5 = d_ship_transaction_bi) 
+    tg1 >> left_join_table(table_1 = f_multi_ships_bi, table_2 = d_session_started_bi , table_3 = d_multiplayer_battle_bi  
+                           , table_4 = d_in_app_purchase_bi, table_5 = d_ship_transaction_bi)  >> trigger_dependent_dag
 
 
 # Delete temporary and unnamed tables created by `load_file` and `transform`, in this example

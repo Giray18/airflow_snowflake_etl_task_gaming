@@ -63,7 +63,7 @@ with dag:
     task_id="trigger_dependent_dag",
     trigger_dag_id="read_raw_data_tables",
     wait_for_completion=True,
-    deferrable=True,  
+    deferrable=False,  
     )
 
     # Task dependencies
