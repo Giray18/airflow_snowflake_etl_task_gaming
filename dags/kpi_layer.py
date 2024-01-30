@@ -331,9 +331,226 @@ def daily_ship_table(table_1: Table):
       ;
     """
 
+# User transactions overview (amount of battles, logins, days since registration before first purchase)
+@aql.run_raw_sql
+def battle_amount_reg_to_purchase(table_1: Table):
+    """amount of battles since registration before first purchase"""
+    return """ 
+    CREATE OR REPLACE VIEW battle_amount_reg_to_purchase as 
+    WITH CTE AS
+    (SELECT session_user_id, MIN(session_event_timestamp) AS reg_day, MIN(in_app_event_timestamp) AS first_purchase_day , DATEDIFF(day,reg_day,first_purchase_day) AS period_length_day
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE multiplayer_user_id IS NOT NULL AND in_app_event_timestamp IS NOT NULL
+      GROUP BY session_user_id )
+    SELECT  cte.session_user_id,
+    COUNT(*) AS battle_amount
+    FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+    WHERE d.multiplayer_event_timestamp BETWEEN cte.reg_day AND cte.first_purchase_day
+    GROUP BY cte.session_user_id
+    ;
+    """
+
+@aql.run_raw_sql
+def login_amount_reg_to_purchase(table_1: Table):
+    """amount of logins since registration before first purchase"""
+    return """ 
+    CREATE OR REPLACE VIEW login_amount_reg_to_purchase as 
+    WITH CTE AS
+    (SELECT session_user_id, MIN(session_event_timestamp) AS reg_day, MIN(in_app_event_timestamp) AS first_purchase_day , DATEDIFF(day,reg_day,first_purchase_day) AS period_length_day
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND in_app_event_timestamp IS NOT NULL
+      GROUP BY session_user_id )
+    SELECT  cte.session_user_id,
+    COUNT(*) AS login_amount
+    FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+    WHERE d.session_event_timestamp BETWEEN cte.reg_day AND cte.first_purchase_day
+    GROUP BY cte.session_user_id
+    ;
+    """
+
+@aql.run_raw_sql
+def day_amount_reg_to_purchase(table_1: Table):
+    """amount of day length since registration before first purchase"""
+    return """ 
+    CREATE OR REPLACE VIEW day_amount_reg_to_purchase as 
+    SELECT session_user_id, period_length_day
+    FROM
+      (SELECT session_user_id, MIN(session_event_timestamp) AS reg_day, MIN(in_app_event_timestamp) AS first_purchase_day , DATEDIFF(day,reg_day,first_purchase_day) AS period_length_day
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND in_app_event_timestamp IS NOT NULL
+      GROUP BY session_user_id)  
+    ;
+    """
+
+# User transactions overview (daily/weekly/monthly revenue per user) 
+@aql.run_raw_sql
+def average_rev_per_user(table_1: Table):
+    """average rev per user for all times"""
+    return """ 
+    CREATE OR REPLACE VIEW average_rev_per_user as 
+    WITH CTE AS
+    (SELECT session_user_id, SUM(in_app_usd_cost) AS rev_sum 
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND in_app_event_timestamp IS NOT NULL
+      GROUP BY session_user_id)
+      SELECT cte.session_user_id,
+      cast(round(SUM(in_app_usd_cost) / COUNT(DISTINCT d.session_event_timestamp),2) as numeric(36,2)) AS average_rev_per_user
+      FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+      GROUP BY cte.session_user_id
+    ;
+    """
+
+@aql.run_raw_sql
+def daily_rev_per_user(table_1: Table):
+    """rev per user in last day"""
+    return """ 
+    CREATE OR REPLACE VIEW daily_rev_per_user as 
+    WITH CTE AS
+    (SELECT session_user_id, SUM(in_app_usd_cost) AS rev_sum 
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND in_app_event_timestamp IS NOT NULL AND DATEDIFF(day,session_event_timestamp,GETDATE()) < 2
+      GROUP BY session_user_id)
+      SELECT cte.session_user_id,
+      cast(round(SUM(in_app_usd_cost) / COUNT(DISTINCT d.session_event_timestamp),2) as numeric(36,2)) AS daily_rev_per_user
+      FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 2
+      GROUP BY cte.session_user_id
+    ;
+    """
+
+
+@aql.run_raw_sql
+def weekly_rev_per_user(table_1: Table):
+    """rev per user in last day"""
+    return """ 
+    CREATE OR REPLACE VIEW weekly_rev_per_user as 
+    WITH CTE AS
+    (SELECT session_user_id, SUM(in_app_usd_cost) AS rev_sum 
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND in_app_event_timestamp IS NOT NULL AND DATEDIFF(day,session_event_timestamp,GETDATE()) < 8
+      GROUP BY session_user_id)
+      SELECT cte.session_user_id,
+      cast(round(SUM(in_app_usd_cost) / COUNT(DISTINCT d.session_event_timestamp),2) as numeric(36,2)) AS weekly_rev_per_user
+      FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 8
+      GROUP BY cte.session_user_id
+    ;
+    """
+
+
+@aql.run_raw_sql
+def monthly_rev_per_user(table_1: Table):
+    """rev per user in last day"""
+    return """ 
+    CREATE OR REPLACE VIEW monthly_rev_per_user as 
+    WITH CTE AS
+    (SELECT session_user_id, SUM(in_app_usd_cost) AS rev_sum 
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND in_app_event_timestamp IS NOT NULL AND DATEDIFF(day,session_event_timestamp,GETDATE()) < 31
+      GROUP BY session_user_id)
+      SELECT cte.session_user_id,
+      cast(round(SUM(in_app_usd_cost) / COUNT(DISTINCT d.session_event_timestamp),2) as numeric(36,2)) AS monthly_rev_per_user
+      FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 31
+      GROUP BY cte.session_user_id
+    ;
+    """
 
 
 
+# Battle analysis (new users participation in battles on a 1/3/7/14 day since registration)
+@aql.run_raw_sql
+def new_user_battle_count_1_day(table_1: Table):
+    """new user battle count for spesific day from registration day"""
+    return """ 
+    CREATE OR REPLACE VIEW new_user_battle_count_1_day as 
+    WITH CTE AS
+    (SELECT session_user_id, MIN(session_event_timestamp) AS reg_day
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND session_event_timestamp IS NOT NULL
+      GROUP BY session_user_id)
+      SELECT cte.session_user_id,
+      COUNT(d.multiplayer_user_id) AS battle_participation_count
+      FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+      INNER JOIN IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.D_NEW_USER_BI') n ON cte.session_user_id = n.USER_USER_ID
+      WHERE d.multiplayer_event_timestamp < reg_day+1
+      GROUP BY cte.session_user_id
+    ;
+    """
+
+
+@aql.run_raw_sql
+def new_user_battle_count_3_day(table_1: Table):
+    """new user battle count for spesific day from registration day"""
+    return """ 
+    CREATE OR REPLACE VIEW new_user_battle_count_3_day as 
+    WITH CTE AS
+    (SELECT session_user_id, MIN(session_event_timestamp) AS reg_day
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND session_event_timestamp IS NOT NULL
+      GROUP BY session_user_id)
+      SELECT cte.session_user_id,
+      COUNT(d.multiplayer_user_id) AS battle_participation_count
+      FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+      INNER JOIN IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.D_NEW_USER_BI') n ON cte.session_user_id = n.USER_USER_ID
+      WHERE d.multiplayer_event_timestamp < reg_day+3
+      GROUP BY cte.session_user_id
+    ;
+    """
+
+
+@aql.run_raw_sql
+def new_user_battle_count_7_day(table_1: Table):
+    """new user battle count for spesific day from registration day"""
+    return """ 
+    CREATE OR REPLACE VIEW new_user_battle_count_7_day as 
+    WITH CTE AS
+    (SELECT session_user_id, MIN(session_event_timestamp) AS reg_day
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND session_event_timestamp IS NOT NULL
+      GROUP BY session_user_id)
+      SELECT cte.session_user_id,
+      COUNT(d.multiplayer_user_id) AS battle_participation_count
+      FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+      INNER JOIN IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.D_NEW_USER_BI') n ON cte.session_user_id = n.USER_USER_ID
+      WHERE d.multiplayer_event_timestamp < reg_day+7
+      GROUP BY cte.session_user_id
+    ;
+    """
+
+
+@aql.run_raw_sql
+def new_user_battle_count_7_day(table_1: Table):
+    """new user battle count for spesific day from registration day"""
+    return """ 
+    CREATE OR REPLACE VIEW new_user_battle_count_7_day as 
+    WITH CTE AS
+    (SELECT session_user_id, MIN(session_event_timestamp) AS reg_day
+      FROM IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.f_multi_ships_bi') 
+      WHERE session_user_id IS NOT NULL AND session_event_timestamp IS NOT NULL
+      GROUP BY session_user_id)
+      SELECT cte.session_user_id,
+      COUNT(d.multiplayer_user_id) AS battle_participation_count
+      FROM CTE INNER JOIN {{table_1}} d ON cte.session_user_id = d.session_user_id
+      INNER JOIN IDENTIFIER('W_GAMING_TASK.BI_LAYER_TASK.D_NEW_USER_BI') n ON cte.session_user_id = n.USER_USER_ID
+      WHERE d.multiplayer_event_timestamp < reg_day+7
+      GROUP BY cte.session_user_id
+    ;
+    """
+
+
+# Battle analysis (battle participation by active users)
+@aql.run_raw_sql
+def battle_participation_active(table_1: Table):
+    """new user battle count for spesific day from registration day"""
+    return """ 
+    CREATE OR REPLACE VIEW battle_participation_active as 
+    SELECT session_user_id, COUNT(DISTINCT multiplayer_event_id) AS active_user_battle_participation
+      FROM {{table_1}} 
+      WHERE session_user_id IS NOT NULL AND session_event_timestamp IS NOT NULL
+      GROUP BY session_user_id
+    ;
+    """
 
 @aql.transform
 #Reading only needed columns from raw data tables
@@ -394,35 +611,29 @@ with dag:
         # Convertion Rate Calculations
         seven_day_conversion_rate(f_multi_ships,d_new_user)
 
-    with TaskGroup('kpi_group_2') as tg1:
+    with TaskGroup('kpi_group_2') as tg2:
         # Ships owned by a every user every day
         user_ship_table(f_multi_ships)
         daily_ship_table(f_multi_ships)
 
 
+    with TaskGroup('kpi_group_3') as tg3:
+        battle_amount_reg_to_purchase(f_multi_ships)
+        login_amount_reg_to_purchase(f_multi_ships)
+        day_amount_reg_to_purchase(f_multi_ships)
+        daily_rev_per_user(f_multi_ships)
+        weekly_rev_per_user(f_multi_ships)
+        monthly_rev_per_user(f_multi_ships)
 
-    # Create a Table objects for table operations on snowflake
-    # with TaskGroup('bulk_operations') as tg1:
-    #     for key,value in table_names_list_dict.items():
-    #         # Getting tables from raw_data layer into variables to used in further operations
-    #         vars() [key] = Table(
-    #         name = value,
-    #         conn_id=SNOWFLAKE_CONN_ID_3,)
-            # String to get columns names from list to string to pass in select statement
-            # my_string = ",".join(str(element) for element in programs.helpers()["golden_layer_col_names"][key.lower()])
-            # filtered_dataframes = filter_source_table(vars() [key],my_string.lower())
-            # # Saving tables into bi_layer on related snowflake schema
-            # columns_to_rename = programs.helpers()["golden_layer_col_map"][key.lower()]
-            # save_dataframe_bi = save_dataframe_to_snowflake(filtered_dataframes,columns_to_rename,output_table = Table(
-            # name = f"{key}_kpi",
-            # conn_id = SNOWFLAKE_CONN_ID_3,))
+
+    with TaskGroup('kpi_group_4') as tg4:
+        battle_participation_active(f_multi_ships)
+        
 
 
 
-    # Task dependencies
-    # tg1 >> left_join_table(table_1 = f_multi_ships_bi, table_2 = d_session_started_bi , table_3 = d_multiplayer_battle_bi 
-    #                        , table_4 = d_in_app_purchase_bi, table_5 = d_ship_transaction_bi) 
-
+  # Task dependencies
+    tg1 >> tg2 >> tg3 >> tg4
 
 # Delete temporary and unnamed tables created by `load_file` and `transform`, in this example
     aql.cleanup()
