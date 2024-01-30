@@ -183,7 +183,7 @@ def helpers():
 
     # # ## Golden Layer Table list
 
-    golden_layer_read_table_names_list = ['in_app_purchase_df_silver_layer_managed_table', 'login_df_silver_layer_managed_table', 'multiplayer_battle_df_silver_layer_managed_table', 'new_user_df_silver_layer_managed_table', 'session_started_df_silver_layer_managed_table', 'ship_transaction_df_silver_layer_managed_table', 'user_id_df_silver_layer_managed_table']
+    # golden_layer_read_table_names_list = ['in_app_purchase_df_silver_layer_managed_table', 'login_df_silver_layer_managed_table', 'multiplayer_battle_df_silver_layer_managed_table', 'new_user_df_silver_layer_managed_table', 'session_started_df_silver_layer_managed_table', 'ship_transaction_df_silver_layer_managed_table', 'user_id_df_silver_layer_managed_table']
 
     # # ## Golden Layer Column Rename Mapping Dict
     golden_layer_col_map = {"d_in_app_purchase": ['EVENT_TIMESTAMP','IN_APP_EVENT_TIMESTAMP','HC_PRODUCT_VALUE','IN_APP_HC_PRODUCT_VALUE','HC_PRODUCT_VALUE_BONUS','IN_APP_HC_PRODUCT_VALUE_BONUS','EVENT_ID','IN_APP_EVENT_ID',
