@@ -72,5 +72,5 @@ For to reach target stage from current stage 4 Airflow dags created as named
 * New users participation in battles since 1/3/7/14 days since registration: User table with battle participation count as daily
 * Active users battle participations of all times: User table with battle participation count as daily
 
-# Activation of Notebooks
-In case there is a databricks subscription only by activation of starter notebook is enough to all notebooks and codes to be run and populate designed schemas/tables.
+# Activation of DAGS
+Dags are dependent to each other as per their queue on ETL process, When Ingestion DAG runs as daily scheduled rest also runs by following.
