@@ -192,6 +192,146 @@ def ARPU_monthly(table_1: Table):
       ;
     """
 
+# ARRPU Calculations (Revenue/Spender User Count)
+@aql.run_raw_sql
+def ARRPU_daily(table_1: Table):
+    """spender user count by f_multi_ships table (distinct count of session_user_id filtered by related column)"""
+    return """ 
+      CREATE OR REPLACE VIEW ARRPU_daily as SELECT 
+      COUNT(DISTINCT session_user_id) AS spenders_daily,
+      SUM(in_app_usd_cost) AS revenue_daily,
+      cast(round(revenue_daily / spenders_daily,2) as numeric(36,2)) AS ARRPU_daily FROM {{table_1}}
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 2 AND
+      session_user_is_spender = TRUE
+      ;
+    """
+
+
+@aql.run_raw_sql
+def ARRPU_weekly(table_1: Table):
+    """spender user count by f_multi_ships table (distinct count of session_user_id filtered by related column)"""
+    return """ 
+      CREATE OR REPLACE VIEW ARRPU_weekly as SELECT 
+      COUNT(DISTINCT session_user_id) AS spenders_weekly,
+      SUM(in_app_usd_cost) AS revenue_weekly,
+      cast(round(revenue_weekly / spenders_weekly,2) as numeric(36,2)) AS ARRPU_weekly FROM {{table_1}}
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 8 AND
+      session_user_is_spender = TRUE
+      ;
+    """
+
+@aql.run_raw_sql
+def ARRPU_monthly(table_1: Table):
+    """spender user count by f_multi_ships table (distinct count of session_user_id filtered by related column)"""
+    return """ 
+      CREATE OR REPLACE VIEW ARRPU_monthly as SELECT 
+      COUNT(DISTINCT session_user_id) AS spenders_monthly,
+      SUM(in_app_usd_cost) AS revenue_monthly,
+      cast(round(revenue_monthly / spenders_monthly,2) as numeric(36,2)) AS ARRPU_monthly FROM {{table_1}}
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 31 AND
+      session_user_is_spender = TRUE
+      ;
+    """
+
+# 1 Day Retention Rate (Rate of New Users who played multi game in last 1 day)
+@aql.run_raw_sql
+def one_day_retention_rate(table_1: Table, table_2: Table):
+    """spender user count by f_multi_ships table (distinct count of session_user_id filtered by related column)"""
+    return """ 
+      CREATE OR REPLACE VIEW one_day_retention_rate as 
+      WITH NEW_USER_COUNT (new_user_count) AS (SELECT 
+      COUNT(DISTINCT session_user_id) AS new_user_count FROM {{table_1}} f INNER JOIN {{table_2}} d 
+      ON f.session_user_id = d.user_user_id
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 2)
+      SELECT new_user_count,
+      (SELECT COUNT(DISTINCT multiplayer_user_id) AS multi_played_user_count FROM {{table_1}}
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 2) AS multiplayer_user_count,
+      cast(round(multiplayer_user_count / new_user_count,2) as numeric(36,2)) AS one_day_retention_rate
+      FROM NEW_USER_COUNT
+      ;
+    """
+# 3 Day Retention Rate (Rate of New Users who played multi game in last 3 day)
+@aql.run_raw_sql
+def three_day_retention_rate(table_1: Table, table_2: Table):
+    """spender user count by f_multi_ships table (distinct count of session_user_id filtered by related column)"""
+    return """ 
+      CREATE OR REPLACE VIEW three_day_retention_rate as 
+      WITH NEW_USER_COUNT (new_user_count) AS (SELECT 
+      COUNT(DISTINCT session_user_id) AS new_user_count FROM {{table_1}} f INNER JOIN {{table_2}} d 
+      ON f.session_user_id = d.user_user_id
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 4)
+      SELECT new_user_count,
+      (SELECT COUNT(DISTINCT multiplayer_user_id) AS multi_played_user_count FROM {{table_1}}
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 4) AS multiplayer_user_count,
+      cast(round(multiplayer_user_count / new_user_count,2) as numeric(36,2)) AS three_day_retention_rate
+      FROM NEW_USER_COUNT
+      ;
+    """
+
+# 7 Day Retention Rate (Rate of New Users who played multi game in last 7 day)
+@aql.run_raw_sql
+def seven_day_retention_rate(table_1: Table, table_2: Table):
+    """spender user count by f_multi_ships table (distinct count of session_user_id filtered by related column)"""
+    return """ 
+      CREATE OR REPLACE VIEW seven_day_retention_rate as 
+      WITH NEW_USER_COUNT (new_user_count) AS (SELECT 
+      COUNT(DISTINCT session_user_id) AS new_user_count FROM {{table_1}} f INNER JOIN {{table_2}} d 
+      ON f.session_user_id = d.user_user_id
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 8)
+      SELECT new_user_count,
+      (SELECT COUNT(DISTINCT multiplayer_user_id) AS multi_played_user_count FROM {{table_1}}
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 8) AS multiplayer_user_count,
+      cast(round(multiplayer_user_count / new_user_count,2) as numeric(36,2)) AS seven_day_retention_rate
+      FROM NEW_USER_COUNT
+      ;
+    """
+
+# 7 Day Conversion Rate (Rate of New Users who played multi game in last 7 day)
+@aql.run_raw_sql
+def seven_day_conversion_rate(table_1: Table, table_2: Table):
+    """spender user count by f_multi_ships table (distinct count of session_user_id filtered by related column)"""
+    return """ 
+      CREATE OR REPLACE VIEW seven_day_conversion_rate as 
+      WITH NEW_USER_COUNT (new_user_count) AS (SELECT 
+      COUNT(DISTINCT session_user_id) AS new_user_count FROM {{table_1}} f INNER JOIN {{table_2}} d 
+      ON f.session_user_id = d.user_user_id
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 8)
+      SELECT new_user_count,
+      (SELECT COUNT(DISTINCT in_app_user_id) AS item_purchased_user_count FROM {{table_1}}
+      WHERE DATEDIFF(day,session_event_timestamp,GETDATE()) < 8) AS item_purchased_user_count,
+      cast(round(item_purchased_user_count / new_user_count,2) as numeric(36,2)) AS seven_day_conversion_rate
+      FROM NEW_USER_COUNT
+      ;
+    """
+
+# Ships owned by a every user every day (At this stage SC_AMOUNT > 0 Used since I do not have 0 value for that column in my sample dataset)
+@aql.run_raw_sql
+def user_ship_table(table_1: Table):
+    """A table showing daily based ship-user_id intersections"""
+    return """ 
+      CREATE OR REPLACE VIEW user_ship_table as 
+      SELECT session_user_id, ship_trans_ship_name,session_event_timestamp,COUNT(*) AS ship_quantity
+      FROM {{table_1}} 
+      WHERE ship_trans_ship_name is not null
+      GROUP BY session_user_id,session_event_timestamp,ship_trans_ship_name
+      ;
+    """
+#  SC_AMOUNT < 0 == ship purchased by user
+
+# Daily ships popularity
+@aql.run_raw_sql
+def daily_ship_table(table_1: Table):
+    """daily purchasements by users"""
+    return """ 
+      CREATE OR REPLACE VIEW daily_ship_table as 
+      SELECT session_user_id, ship_trans_ship_name,session_event_timestamp,COUNT(*) AS ship_quantity
+      FROM {{table_1}} 
+      WHERE ship_trans_ship_name is not null AND SHIP_TRANS_SC_AMOUNT < 0
+      GROUP BY session_user_id,session_event_timestamp,ship_trans_ship_name
+      ;
+    """
+
+
 
 
 
@@ -210,37 +350,56 @@ dag = DAG(
 )
 
 with dag:
+    with TaskGroup('kpi_group_1') as tg1:
+        # Saving tables from snowflake to variables to use on KPI calculations
+        f_multi_ships = Table(name="f_multi_ships_bi", temp=True, conn_id=SNOWFLAKE_CONN_ID_3)
+        d_new_user = Table(name="d_new_user_bi", temp=True, conn_id=SNOWFLAKE_CONN_ID_3)
+        d_user_id = Table(name="d_user_id_bi", temp=True, conn_id=SNOWFLAKE_CONN_ID_3)
+
+        # Active Users Calculation
+        active_users_daily(f_multi_ships)
+        active_users_weekly(f_multi_ships)
+        active_users_monthly(f_multi_ships)
+
+        # New Users Calculation
+        new_users_daily(f_multi_ships,d_new_user)
+        new_users_weekly(f_multi_ships,d_new_user)
+        new_users_monthly(f_multi_ships,d_new_user)
+
+        # Revenue Calculations
+        revenue_daily(f_multi_ships)
+        revenue_weekly(f_multi_ships)
+        revenue_monthly(f_multi_ships)
+
+        # Spender (Users) Calculations
+        spenders_daily(f_multi_ships)
+        spenders_weekly(f_multi_ships)
+        spenders_monthly(f_multi_ships)
+
+        # ARPU Calculations
+        ARPU_daily(f_multi_ships)
+        ARPU_weekly(f_multi_ships)
+        ARPU_monthly(f_multi_ships)
+
+        # ARRPU Calculations
+        ARRPU_daily(f_multi_ships)
+        ARRPU_weekly(f_multi_ships)
+        ARRPU_monthly(f_multi_ships)
+
+        # Retention Rate Calculations
+        one_day_retention_rate(f_multi_ships,d_new_user)
+        three_day_retention_rate(f_multi_ships,d_new_user)
+        seven_day_retention_rate(f_multi_ships,d_new_user)
+
+        # Convertion Rate Calculations
+        seven_day_conversion_rate(f_multi_ships,d_new_user)
+
+    with TaskGroup('kpi_group_2') as tg1:
+        # Ships owned by a every user every day
+        user_ship_table(f_multi_ships)
+        daily_ship_table(f_multi_ships)
 
 
-    # Saving tables from snowflake to variables to use on KPI calculations
-    f_multi_ships = Table(name="f_multi_ships_bi", temp=True, conn_id=SNOWFLAKE_CONN_ID_3)
-    d_new_user = Table(name="d_new_user_bi", temp=True, conn_id=SNOWFLAKE_CONN_ID_3)
-    d_user_id = Table(name="d_user_id_bi", temp=True, conn_id=SNOWFLAKE_CONN_ID_3)
-
-    # Active Users Calculation
-    active_users_daily(f_multi_ships)
-    active_users_weekly(f_multi_ships)
-    active_users_monthly(f_multi_ships)
-
-    # New Users Calculation
-    new_users_daily(f_multi_ships,d_new_user)
-    new_users_weekly(f_multi_ships,d_new_user)
-    new_users_monthly(f_multi_ships,d_new_user)
-
-    # Revenue Calculations
-    revenue_daily(f_multi_ships)
-    revenue_weekly(f_multi_ships)
-    revenue_monthly(f_multi_ships)
-
-    # Spender (Users) Calculations
-    spenders_daily(f_multi_ships)
-    spenders_weekly(f_multi_ships)
-    spenders_monthly(f_multi_ships)
-
-    # ARPU Calculations
-    ARPU_daily(f_multi_ships)
-    ARPU_weekly(f_multi_ships)
-    ARPU_monthly(f_multi_ships)
 
     # Create a Table objects for table operations on snowflake
     # with TaskGroup('bulk_operations') as tg1:
