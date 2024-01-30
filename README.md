@@ -1,5 +1,5 @@
-# data_engineering
-This Repo contains activities related to ELT, data warehouse creation and advanced analytics by Spark framework (PySpark on Databricks)
+# Data_engineering activites by AIRFLOW and Snowflake
+This Repo contains activities related to ETL, data warehouse creation and advanced analytics by Airflow Dags (SQL and Python used as script)
 
 # Task:
 There are table definitions which has structure of source tables without any data sample only DDL sql script is available and can be found at files with name 'test_tables 1.sql'.
@@ -17,29 +17,33 @@ Based on DDL sql script shared, with using python faker package some fake data h
 Further steps applied on mentioned source tables for further steps.
 
 # Target Stage:
-Intention is to create 3 tier architecture on delta lakehouse architecture. All tables created on transformations will be saved to DBFS (Databricks File System) as managed table)
-* Bronze layer will hold ingested tables as raw data format
-* Silver layer will hold cleaned and relatively normalized tables as close as It can get to 3NF
-* Gold layer will hold analytics datawarehouse formatted tables and aggregated views as business requirements mentioned below.
+Intention is to create snowflake schemas and populate them with transformed data. All tables created on transformations will be saved to Snowflake schemas)
+* PUBLIC schema will hold ingested tables as raw data format
+* DWH_TASK schema will hold cleaned and relatively normalized tables as close as It can get to 3NF
+* BI_LAYER_TASK schema will hold analytics datawarehouse formatted tables and aggregated views as business requirements mentioned below.
   * All metrics are requested to be calculated by time periods required as Daily,Monthly and Weekly (Prefilters final fact table before metrics calculated)
-For to reach target stage from current stage 3 notebooks created as named
-* Bronze_Layer_Notebook (Ingestion to Bronze Layer Schema)
-* Silver_Layer_Notebook (Created Normalized Tables -  Deduplicated tables by unique value holding fields)
-  * IN_APP_PURCHASE Table
-  * LOGIN Table
-  * Multiplayer_Battle Table
-  * New_user Table
-  * Session_started Table
-  * Ship_transaction Table
-* Golden_Layer_Notebook (Created Data Model for BI tool (Star Schema)) and (Table/Views holding Metrics/KPIs defined below)
+For to reach target stage from current stage 4 Airflow dags created as named
+* raw_tables_ingestion (Ingestion to PUBLIC Schema)
+* read_raw_data_tables (Created Normalized Tables -  Deduplicated tables by unique value holding fields)
+  * IN_APP_PURCHASE_DF_DWH Table
+  * LOGIN_DF_DWH Table
+  * Multiplayer_Battle_DF_DWH Table
+  * New_user_DF_DWH Table
+  * Session_started_DF_DWH Table
+  * Ship_transaction_DF_DWH Table
+  * User_id_DF_DWH Table (Created with anti join of new_user table and session_started table
+* read_dwh_layer_data_tables & kpi calculation
+  * (Created Data Model for BI tool (Star Schema)) and (Table/Views holding Metrics/KPIs defined below)
 
-# Flow Diagrams (Shows steps applied on notebooks)
+# Flow Diagrams (Shows steps applied on DAGS)
 
-![picture alt](Data_Model-Page-2.drawio.png)
+![picture alt](Data_Model-Page-7.drawio.png)
 
 # Golden Layer Datamodel (Some columns hidden due to downsize schema view)
 ![picture alt](Data_Model_Short.png)
 
+
+## All metrics calculations located on kpi_calculation.py DAG file
 ## General Metrics
 * Active Users: Unique User count exists on f_multi_ships table based on field named "Session_User_Id"
 * New Users: Unique User count exists on d_new_user dimension table based on field named "User_User_ID"
